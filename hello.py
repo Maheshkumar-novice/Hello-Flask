@@ -1,5 +1,4 @@
-from fileinput import filename
-from flask import Flask, render_template, request, url_for
+from flask import Flask, make_response, redirect, render_template, request, url_for, abort, jsonify
 from markupsafe import escape
 
 app = Flask(__name__)
@@ -7,7 +6,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return "<h1>Index Page</h1>"
+    return f"<h1>Index Page and These are the args passed in {request.args}</h1>"
 
 
 @app.route("/hello")
@@ -39,17 +38,55 @@ def projects():
 def about():
     return "About Page"
 
-@app.route("/login", methods = ["GET", "POST"])
+
+@app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         return "Creating Account! Logging You In!"
     else:
         return "Getting User Data! Logging You In!"
 
+
 @app.route('/welcome/')
 @app.route('/welcome/<name>')
 def welcome(name=None):
     return render_template('hello.html', name=name)
+
+
+@app.route('/redirect_me')
+def redirect_me():
+    return redirect(url_for('index'))
+
+
+@app.route('/cookie')
+def cookie():
+    response = make_response(render_template('hello.html', name='Maheshkumar'))
+    response.set_cookie('username', 'Maheshkumar')
+    response.set_cookie('this_is', 'another cookie')
+    response.headers['Hi'] = 'Im a header'
+    return response
+
+
+@app.route('/show_cookie')
+def show_cookie():
+    return request.cookies
+
+
+@app.route('/abort_me')
+def abort_me():
+    abort(401)
+
+@app.route('/json_api')
+def json_api():
+    return {'my_fav_language1': 'ruby :)', 'my_fav_language2': 'python ;)'}
+
+@app.route('/list_json_api')
+def list_json_api():
+    return jsonify(['hi', {'hi': 'yo'}, ['hiya']])
+
+@app.errorhandler(401)
+def unauthorized(error):
+    return "<h1>This is a decorated page for Aborting with 401 code", 401
 
 
 with app.test_request_context():
